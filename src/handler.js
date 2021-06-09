@@ -90,7 +90,80 @@ const getAllBookHandler = (request,h) => {
 
 }
 
+const getBookByIdHandler = (request,h) => {
+        const {id} = request.params;    
+        const matchingId = Books.filter((idMatch) => idMatch.id === id)[0];
 
-module.exports = {getAllBookHandler,addBookHandler}
+        if(matchingId !== undefined) {
+            return {
+                status: 'success',
+                data: {
+                  book: matchingId,
+                }
+
+            };
+           
+        }
+
+        const response = h.response({
+            status: 'fail',
+            message: 'Buku tidak ditemukan',
+        })
+        .code(404);
+        return response;
+
+
+}
+
+const editBookByIdHandler = (request,h) => {
+        const {id} = request.params;
+        const bookIdIndex = Books.findIndex((bookMatch) => bookMatch.id === id);
+
+        if(bookIdIndex !== -1) {
+            const {name,year,author,summary,publisher,pageCount,readPage,reading} = request.payload;
+
+            if(!name) {
+                const response = h.response({
+                    status: "fail",
+                    meessage: "Gagal memperbarui buku. Mohon isi nama buku",
+                })
+                .code(400);
+                return response;
+            }
+            if(pageCount < readPage) {
+                const response = h.response({
+                    status: "fail",
+                    message: "Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount",
+                })
+                .code(400);
+                return response;
+            }
+
+            const updatedAt = new Date().toISOString(); 
+
+            Books[bookIdIndex] = {
+                ...Books[bookIdIndex],
+                name,year,author,summary,publisher,pageCount,readPage,reading,updatedAt
+            };
+
+            const response = h.response({
+                    status: 'success',
+                    message: "Buku berhasil diperbaharui"
+
+            }).code(200) 
+            return response;
+        } 
+        
+        const response = h.response({
+            status: 'fail',
+            message: "Gagal memperbarui buku. ID tidak ditemukan"
+        })
+        .code(404);
+        return response;
+      
+}
+
+
+module.exports = {getAllBookHandler,addBookHandler,getBookByIdHandler,editBookByIdHandler}
 
 
